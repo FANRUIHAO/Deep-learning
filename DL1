@@ -6,7 +6,7 @@
 /*
     1、找一批用于训练的数据，通过create_data函数生成
         ----定义函数create__data用于生成数据
-        ----定义data_provider函数用于提供数据
+        ----定义函数data_provider函数用于提供数据
         def data_provider(data, label, batchsize):      #每次访问这个函数可以提供一批数据
             length = len(label)//这个是用于计算数据的长度
             indices = list(range(length))#0-500的列表
@@ -30,7 +30,21 @@
         def maeLoss(pre_y, y): //pre_y是预测值，y是标签
             return torch.sum(abs(pre_y - y))/len(y)//返回损失值
     4、定义一个函数用于优化，这个函数的参数是一个张量，返回值是一个张量
-    5、定义一个函数用于训练，这个函数的参数是一个函数，返回值是一个张量
+        def sgd(paras, lr):     #随机梯度下降，更新torch.tensor  张量
+            with torch.no_grad():  #属于这句代码的部分，不计算梯度 
+                for para in paras: #遍历参数
+                    para -= para.grad* lr   #不能写成 para = para - para.grad*lr。用于更新参数
+                    para.grad.zero_()       #使用过的梯度，归0
+    5、定义一个函数用于训练
+            for epoch in range(epochs):
+    data_loss = 0
+    for batch_x, batch_y in data_provider(X, Y, batchsize):
+        pred_y = fun(batch_x, w_0, b_0)
+        loss = maeLoss(pred_y, batch_y)
+        loss.backward()
+        sgd([w_0, b_0], lr)
+        data_loss += loss
+    print("epoch %03d: loss: %.6f"%(epoch, data_loss))   
     6、定义一个函数用于测试，这个函数的参数是一个函数，返回值是一个张量
 
 
