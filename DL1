@@ -1,4 +1,44 @@
-import torch //导入torch包，用于创建张量，梯度，帮助完成线性回归
+/*基础知识：
+    张量是多维的数值数组，可以包含标量、向量、矩阵以及更高维的数据结构。
 
-//如果需要一批数据用于测试推算出一个用于估算结果的函数，那么需要定义一个
-//函数用于生成数据，同样也需要用到torch包
+*/
+//完成线性回归需要：
+/*
+    1、找一批用于训练的数据，通过create_data函数生成
+        ----定义函数create__data用于生成数据
+        ----定义data_provider函数用于提供数据
+        def data_provider(data, label, batchsize):      #每次访问这个函数可以提供一批数据
+            length = len(label)//这个是用于计算数据的长度
+            indices = list(range(length))#0-500的列表
+            #我不能按顺序取  把数据打包
+            random.shuffle(indices)//打乱数据
+
+            for each in range(0, length, batchsize)://每次取batchsize个数据,batchsize是根据传过来的参数定的
+                get_indices = indices[each: each+batchsize]//每次取batchsize个数据
+                get_data = data[get_indices]//根据索引取数据
+                get_label = data[get_indices]//根据索引取标签,标签是用于推算结果的
+
+                yield get_data, get_label  #有存档点的return，下次调用时，从这里开始
+    2、定义一个函数用于推算结果（这个函数需要构造出来），返回值是一个预测值
+        ····定义函数fun返回预测值
+        def fun(x, w, b)://w是权重，b是偏置,x是输入
+            pre_y = torch.matmul(x, w) + b//矩阵相乘
+            return pre_y//返回预测值
+                
+    3、定义一个函数用于计算损失，这个函数的参数是一个张量，返回值是一个标量
+        ····定义函数maeLoss用于计算损失
+        def maeLoss(pre_y, y): //pre_y是预测值，y是标签
+            return torch.sum(abs(pre_y - y))/len(y)//返回损失值
+    4、定义一个函数用于优化，这个函数的参数是一个张量，返回值是一个张量
+    5、定义一个函数用于训练，这个函数的参数是一个函数，返回值是一个张量
+    6、定义一个函数用于测试，这个函数的参数是一个函数，返回值是一个张量
+
+
+
+    import torch //导入torch包，用于完成创建张量，自动求导（计算梯度），帮助完成线 性回归
+
+    如果需要一批数据用于测试推算出一个用于估算结果的函数，那么需要定义一个
+    函数用于生成数据，同样也需要用到torch包
+
+    matmul //用于表示矩阵相乘，也就是用到torch包完成矩阵运算
+*/
