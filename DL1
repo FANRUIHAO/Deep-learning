@@ -25,15 +25,15 @@
     1、找一批用于训练的数据，通过create_data函数生成
         ----#定义函数create__data用于生成数据
             def create_data(w, b, data_num):
-                x = torch.normal(0, 1, (data_num, len(w)))
+                x = torch.normal(0, 1, (data_num, len(w)))#设置数据的形状，data_num表示数据的个数，len(w)表示数据的维度
                 y = torch.matmul(x, w)+b#matmul表示矩阵相乘
 
                 noise = torch.normal(0, 0.01, y.shape)#噪声要加到y上，给y做一个扰动
-                y += noise
+                y += noise          #加上噪声
 
                 return x, y
 
-            num = 500  //表示生成500个数据
+            num = 500  #表示生成500个数据
 
             X, Y = create_data(true_w, true_b, num) #根据X，Y推测出w，b
             true_w = torch.tensor([8.1,2,2,4])#转为列表 w （张量）
@@ -43,9 +43,8 @@
             plt.show()
 
 
-
-        ----定义函数data_provider函数用于取数据
-        def data_provider(data, label, batchsize):      #每次访问这个函数可以提供一批数据
+        ----#定义函数data_provider函数用于取数据
+        def data_provider(data, label, batchsize):     #每次访问这个函数可以提供一批数据
             length = len(label)#这个是用于计算数据的长度
             indices = list(range(length))#range(length)表示0-500的列表
             #不能按顺序取  需要把数据打包
@@ -65,7 +64,7 @@
                 #注意：可以通过调试，查看batch_x和batch_y的值，看看是否是我们想要的值
     
     
-    2、定义一个模型(函数)用于推算预测值(这个函数需要构造出来)pre_y
+    2、定义一个模型(函数)用于推算预测值pre_y(这个函数需要构造出来)
         #定义函数fun返回预测值
         def fun(x, w, b)://w是权重，b是偏置,x是输入
             pre_y = torch.matmul(x, w) + b//矩阵相乘
@@ -78,14 +77,14 @@
         def sgd(paras, lr):     #随机梯度下降，更新torch.tensor  张量
             with torch.no_grad():  #更新参数不需要计算梯度  即属于这句代码的部分，不计算梯度 
                 for para in paras: #遍历参数
-                    para -= para.grad* lr   #不能写成 para = para - para.grad*lr。用于更新参数
+                    para -= para.grad* lr   #用于更新参数 不能写成 para = para - para.grad*lr
                     para.grad.zero_()       #因为每条梯度在计算的时候会不断累加，计算新的梯度就要将使用过的梯度，归0
 -------------------------------------------------------------------------------------------------------------------------------     
     
     #准备工作做好了，接下来就是训练模型了
         #过程也就是随机选择一个w和b，然后计算预测值，计算损失，计算梯度，更新w和b
     5、定义一个函数用于训练
-        lr = 0.001#设置学习率
+        lr = 0.001  #设置学习率
         w_0 = torch.normal(0, 0.01, true_w.shape, requires_rad=True)    #设置一个随机值w  要有形状  这个w需要计算梯度：用requests_grad=True  
         b_0 = torch.normal(0.01, requires_grad=Ture)                    #设置一个随机值b
         print(w_0, b_0)
@@ -95,12 +94,12 @@
                 for epoch in range(epochs):
                     data_loss = 0
                     for batch_x, batch_y in data_provider(X, Y, batchsize):#取一批数据
-                        pred_y = fun(batch_x, w_0, b_0)
-                        loss = maeLoss(pred_y, batch_y)#batch为真实值 pred为预测值
+                        pred_y = fun(batch_x, w_0, b_0)#得出预测值
+                        loss = maeLoss(pred_y, batch_y)#计算损失 （batch为真实值 pred为预测值）
                         loss.backward()#梯度回传，求出所有的loss
-                        sgd([w_0, b_0], lr)#更新模型
+                        sgd([w_0, b_0], lr)#更新模型 也就是计算梯度，优化
                         data_loss += loss  #累加当前轮次loss
-        print("epoch %03d: loss: %.6f"%(epoch, data_loss))  #03d表示输出三位整数，.6f表示输出六位小数 
+        print("epoch %03d: loss: %.6f"%(epoch, data_loss))  #03d表示输出三位整数，.6f表示输出六位小数
 
     #如果loss也就是梯度变化的太小了，说明学习率太小，需要调大学习率
     #目的就是训练模型，让模型的预测值和真实值尽可能的接近，也就是让loss尽可能的小
