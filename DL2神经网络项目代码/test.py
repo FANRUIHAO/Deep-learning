@@ -8,6 +8,8 @@ from torch import optim
 from torch.utils.data import DataLoader, Dataset
 import time
 from model import MyModel
+import os
+os.environ["KMP_DUPLICATE_lIB_OK"]="TRUE"
 
 class CovidDatatest(Dataset):
     def __init__(self, file_path, mode="train"):#初始化,设置为训练模式  用mode来区分训练集还是测试集
@@ -17,14 +19,15 @@ class CovidDatatest(Dataset):
 
         if mode == "train":                  #逢5取1
             indices = [i for i in range(len(csv_data))if i % 5 != 0]#训练集
+            data = torch.tensor(csv_data[indices, :-1])  # 进入神经网络必须要张量tensor
             self.y = torch.tensor(csv_data[indices, -1])
         elif mode == "val":
             indices = [i for i in range(len(csv_data)) if i % 5 == 0]#验证集
+            data = torch.tensor(csv_data[indices, :-1])  # 进入神经网络必须要张量tensor
             self.y = torch.tensor(csv_data[indices, -1])
         else:
             indices = [i for i in range(len(csv_data))]
-
-        data = torch.tensor(csv_data[indices, :-1])  #进入神经网络必须要张量tensor
+            data = torch.tensor(csv_data[indices])  # 进入神经网络必须要张量tensor
         self.data = (data-data.mean(dim=0, keepdim=True))/data.std(dim=0, keepdim=True)
         self.mode = mode
 
@@ -85,6 +88,7 @@ def train_val(model, train_loader, val_loader, device, epochs, optimizer, loss, 
     plt.legend(["train", "val"])
     plt.show()
 
+
 #超参
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(device)
@@ -93,7 +97,8 @@ config = {
     "lr": 0.001,
     "epochs": 20,
     "momentum": 0.9,
-    "save_path": "model_save/best_model.pth"
+    "save_path": "model_save/best_model.pth",
+    "rel_path": "pred.csv"
 }
 
 
@@ -109,6 +114,8 @@ test_dataset = CovidDatatest(test_file, "train")
 batch_size = 16
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)#把数据集传进来，shuffle就是起到打乱数据的作用
 val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)#把数据集传进来，shuffle就是起到打乱数据的作用
+test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)#把数据集传进来，shuffle就是起到打乱数据的作用
+
 
 model = MyModel(inDim=93).to(device)
 loss = nn.MSELoss()
@@ -116,17 +123,29 @@ optimizer = optim.SGD(model.parameters(), lr=config["lr"], momentum=config["mome
 train_val(model, train_loader, val_loader, device, config["epochs"], optimizer, loss, config["save_path"])
 
 
+#测试集
+#评估函数，得出测试结果
+def evaluate(save_path, test_loader, device, rel_path):
+    #加载模型
+    model = torch.load(save_path).to(device)
+    rel = []#定义一个结果的列表
+    #让x通过模型预测出y
+    with torch.no_grad():#不计算梯度
+        for x in test_loader:
+            pred = model(x.to(device))
+            rel.append(pred)
+    print(rel)
+    with open(rel_path, "w", newline='') as f:
+        csvWriter = csv.writerow(["id", "tested_positive"])
+        for i, value in enumerate(rel):
+            csvWriter.writerow([str(i), str(value)])
+    print("文件已保存到{}".format((rel_path)))
 
-for batch_x, batch_y in train_dataset:
-    print(batch_x, batch_y)
-#
-#
-#
-#
-model = MyModel(inDim=93)
-predy = model(batch_x)
 
-
+# for batch_x, batch_y in train_dataset:
+#     print(batch_x, batch_y)
+# model = MyModel(inDim=93)
+# predy = model(batch_x)
 # file = pd.read_csv(train_file)
 # print(file.head())
 
