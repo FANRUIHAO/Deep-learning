@@ -1,0 +1,134 @@
+import matplotlib.pyplot as plt
+import torch
+import numpy as np
+import pandas as pd
+import csv
+import torch.nn as nn
+from torch import optim
+from torch.utils.data import DataLoader, Dataset
+import time
+from model import MyModel
+
+class CovidDatatest(Dataset):
+    def __init__(self, file_path, mode="train"):#初始化,设置为训练模式  用mode来区分训练集还是测试集
+        with open(file_path, "r") as f:
+            ori_data = list(csv.reader(f))
+            csv_data = np.array(ori_data[1:])[:, 1:].astype(float)    #不要第一列,去掉第一行第一列
+
+        if mode == "train":                  #逢5取1
+            indices = [i for i in range(len(csv_data))if i % 5 != 0]#训练集
+            self.y = torch.tensor(csv_data[indices, -1])
+        elif mode == "val":
+            indices = [i for i in range(len(csv_data)) if i % 5 == 0]#验证集
+            self.y = torch.tensor(csv_data[indices, -1])
+        else:
+            indices = [i for i in range(len(csv_data))]
+
+        data = torch.tensor(csv_data[indices, :-1])  #进入神经网络必须要张量tensor
+        self.data = (data-data.mean(dim=0, keepdim=True))/data.std(dim=0, keepdim=True)
+        self.mode = mode
+
+    def __getitem__(self, idx):#测试集
+        if self.mode != "test":
+            return self.data[idx].float(), self.y[idx].float()#用float让模型变成32bit的，减少消耗
+        else:
+            return self.data[idx].float()
+
+    def __len__(self):
+        return len(self.data)
+
+
+
+#训练模型
+def train_val(model, train_loader, val_loader, device, epochs, optimizer, loss, save_path):
+    model = model.to(device)
+    # epoch = 10
+    plt_train_loss = []#就是用来记录所有训练轮次的loss
+    plt_val_loss = []
+    main_val_loss = 999999999   #记录最小的loss值，如果有小于该值的loss，就将loss替换为更小的
+
+    #开始训练的地方
+    for epoch in range(epochs):   #最主要的地方  训练每一轮loss
+        train_loss = 0.0
+        val_loss = 0.0
+        start_time = time.time()
+
+        model.train()       #模型调整为训练模式
+        for batch_x, batch_y in train_loader:      #从训练集中去除一批数据x和y
+            x, target = batch_x.to(device), batch_y.to(device) #放在gpu上训练
+            pred = model(x)
+            train_bat_loss = loss(pred, target) #mse就是求两个y的平方差
+            train_bat_loss.backward()#梯度回传
+            optimizer.step()#起到更新训练模型的作用
+            optimizer.zero_grad()
+            train_loss += train_bat_loss.cpu().item()#张量没法在gpu上面跑，需要在cpu上面跑
+        plt_train_loss.append(train_loss/train_loader.dataset.__len__())#train_loss是本次的轮次，要把它加载在所有loss里, 相加后去平均值
+
+        model.eval()
+        with torch.no_grad():#在模型中计算都会计算梯度，在验证集中只是看模型的效果，不可以积攒梯度
+            for batch_x, batch_y in val_loader:
+                x, target = batch_x.to(device), batch_y.to(device)
+                pred = model(x)
+                val_bat_loss = loss(pred, target)#对于梯度回传，loss越小说明模型越好
+                val_loss += val_bat_loss.cpu().item()
+        plt_val_loss.append(val_loss/ val_loader.__len__())#记录每一轮的valloss
+        if val_loss < main_val_loss:
+            torch.save(model, save_path)#保存好的模型到save_path路径
+            main_val_loss = val_loss
+        # 打印出当前轮次训练的结果
+        print("[%03d/%03d] %2.2f sec(s) TrainLoss : %.6f | valLoss: %.6f"% \
+              (epoch, epochs, time.time() - start_time, plt_train_loss[-1], plt_val_loss[-1])
+              )
+    plt.plot(plt_train_loss)#plot用于画图
+    plt.plot(plt_val_loss)
+    plt.title("loss图")
+    plt.legend(["train", "val"])
+    plt.show()
+
+#超参
+device = "cuda" if torch.cuda.is_available() else "cpu"
+print(device)
+#放置超参数
+config = {
+    "lr": 0.001,
+    "epochs": 20,
+    "momentum": 0.9,
+    "save_path": "model_save/best_model.pth"
+}
+
+
+
+train_file = "covid.train.csv"
+test_file = "covid.test.csv"
+
+
+train_dataset = CovidDatatest(train_file, "train")
+val_dataset = CovidDatatest(train_file, "train")
+test_dataset = CovidDatatest(test_file, "train")
+
+batch_size = 16
+train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)#把数据集传进来，shuffle就是起到打乱数据的作用
+val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)#把数据集传进来，shuffle就是起到打乱数据的作用
+
+model = MyModel(inDim=93).to(device)
+loss = nn.MSELoss()
+optimizer = optim.SGD(model.parameters(), lr=config["lr"], momentum=config["momentum"])#优化器直接用官方的
+train_val(model, train_loader, val_loader, device, config["epochs"], optimizer, loss, config["save_path"])
+
+
+
+for batch_x, batch_y in train_dataset:
+    print(batch_x, batch_y)
+#
+#
+#
+#
+model = MyModel(inDim=93)
+predy = model(batch_x)
+
+
+# file = pd.read_csv(train_file)
+# print(file.head())
+
+
+
