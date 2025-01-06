@@ -96,7 +96,7 @@ print(device)
 config = {
     "lr": 0.001,
     "epochs": 20,
-    "momentum": 0.9,
+    "momentum": 0.8,
     "save_path": "model_save/best_model.pth",
     "rel_path": "pred.csv"
 }
@@ -140,6 +140,7 @@ def evaluate(save_path, test_loader, device, rel_path):
         for i, value in enumerate(rel):
             csvWriter.writerow([str(i), str(value)])
     print("文件已保存到{}".format((rel_path)))
+
 
 
 # for batch_x, batch_y in train_dataset:
