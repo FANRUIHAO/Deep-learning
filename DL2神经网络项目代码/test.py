@@ -11,26 +11,27 @@ from model import MyModel
 import os
 os.environ["KMP_DUPLICATE_lIB_OK"]="TRUE"
 
-class CovidDatatest(Dataset):
+class CovidDatatest(Dataset):#用于加载数据集
     def __init__(self, file_path, mode="train"):#初始化,设置为训练模式  用mode来区分训练集还是测试集
-        with open(file_path, "r") as f:
-            ori_data = list(csv.reader(f))
-            csv_data = np.array(ori_data[1:])[:, 1:].astype(float)    #不要第一列,去掉第一行第一列
+        with open(file_path, "r") as f:#打开记录数据的文件
+            ori_data = list(csv.reader(f))#将文件中的数据读取出来
+            csv_data = np.array(ori_data[1:])[:, 1:].astype(float)    #不要第一列,去掉第一行第一列  将数据转化为numpy数组  astype是将数据转化为float类型
 
-        if mode == "train":                  #逢5取1
-            indices = [i for i in range(len(csv_data))if i % 5 != 0]#训练集
-            data = torch.tensor(csv_data[indices, :-1])  # 进入神经网络必须要张量tensor
-            self.y = torch.tensor(csv_data[indices, -1])
-        elif mode == "val":
-            indices = [i for i in range(len(csv_data)) if i % 5 == 0]#验证集
-            data = torch.tensor(csv_data[indices, :-1])  # 进入神经网络必须要张量tensor
-            self.y = torch.tensor(csv_data[indices, -1])
+        if mode == "train":#训练集  
+            indices = [i for i in range(len(csv_data))if i % 5 != 0]#逢5取1
+            data = torch.tensor(csv_data[indices, :-1])  # 进入神经网络必须要张量tensor 把数据转化为张量
+            self.y = torch.tensor(csv_data[indices, -1]) #y表示最后一列 用于训练
+        elif mode == "val":#验证集
+            indices = [i for i in range(len(csv_data)) if i % 5 == 0]#逢5取0
+            data = torch.tensor(csv_data[indices, :-1])  # 进入神经网络必须要张量tensor把数据转化为张量
+            
+            self.y = torch.tensor(csv_data[indices, -1])#y表示最后一列 用于训练
         else:
-            indices = [i for i in range(len(csv_data))]
-            data = torch.tensor(csv_data[indices])  # 进入神经网络必须要张量tensor
-        self.data = (data-data.mean(dim=0, keepdim=True))/data.std(dim=0, keepdim=True)
-        self.mode = mode
-
+            indices = [i for i in range(len(csv_data))]#测试集
+            data = torch.tensor(csv_data[indices])  # 进入神经网络必须要张量tensor把数据转化为张量
+        self.data = (data-data.mean(dim=0, keepdim=True))/data.std(dim=0, keepdim=True)#标准化数据
+        self.mode = mode   #表示当前是训练集还是测试集
+#····························································
     def __getitem__(self, idx):#测试集
         if self.mode != "test":
             return self.data[idx].float(), self.y[idx].float()#用float让模型变成32bit的，减少消耗
