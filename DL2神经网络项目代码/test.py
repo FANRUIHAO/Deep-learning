@@ -33,8 +33,8 @@ class CovidDatatest(Dataset):#用于加载数据集
         self.mode = mode   #表示当前是训练集还是测试集
 #····························································
     def __getitem__(self, idx):#测试集
-        if self.mode != "test":
-            return self.data[idx].float(), self.y[idx].float()#用float让模型变成32bit的，减少消耗
+        if self.mode != "test":#判断是否为测试集
+            return self.data[idx].float(), self.y[idx].float()#若为测试集，则转化模型数据x y类型为32位，变小一点，减少开销
         else:
             return self.data[idx].float()
 
@@ -44,7 +44,7 @@ class CovidDatatest(Dataset):#用于加载数据集
 
 
 #训练模型
-def train_val(model, train_loader, val_loader, device, epochs, optimizer, loss, save_path):
+def train_val(model, train_loader, val_loader, device, epochs, optimizer, loss, save_path):#传入参数 模型参数 训练数据 ______
     model = model.to(device)
     # epoch = 10
     plt_train_loss = []#就是用来记录所有训练轮次的loss
@@ -55,16 +55,16 @@ def train_val(model, train_loader, val_loader, device, epochs, optimizer, loss, 
     for epoch in range(epochs):   #最主要的地方  训练每一轮loss
         train_loss = 0.0
         val_loss = 0.0
-        start_time = time.time()
+        start_time = time.time()    #用来计算训练时间
 
         model.train()       #模型调整为训练模式
         for batch_x, batch_y in train_loader:      #从训练集中去除一批数据x和y
             x, target = batch_x.to(device), batch_y.to(device) #放在gpu上训练
-            pred = model(x)
+            pred = model(x)         #将x通过模型得出预测值
             train_bat_loss = loss(pred, target) #mse就是求两个y的平方差
             train_bat_loss.backward()#梯度回传
             optimizer.step()#起到更新训练模型的作用
-            optimizer.zero_grad()
+            optimizer.zero_grad()#清除梯度堆积 为下一轮训练做准备
             train_loss += train_bat_loss.cpu().item()#张量没法在gpu上面跑，需要在cpu上面跑
         plt_train_loss.append(train_loss/train_loader.dataset.__len__())#train_loss是本次的轮次，要把它加载在所有loss里, 相加后去平均值
 
