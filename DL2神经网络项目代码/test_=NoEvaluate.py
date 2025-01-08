@@ -93,40 +93,6 @@ def train_val(model, train_loader, val_loader, device, epochs, optimizer, loss, 
     plt.title("loss图")
     plt.legend(["train", "val"])
     plt.show()
-
-
-#超参
-device = "cuda" if torch.cuda.is_available() else "cpu"#若有gpu则选择cuda来跑模型，若没有gpu则选择cpu来跑模型
-print(device)
-#放置超参数
-config = {
-    "lr": 0.001,#学习率
-    "epochs": 20,#训练轮次
-    "momentum": 0.8,#惯性
-    "save_path": "model_save/best_model.pth",#训练结果保存的路径
-    "rel_path": "pred.csv"#预测值保存的路径
-}#便于查看参数以及灵活修改
-
-
-######################以上为函数准备工作，下面为训练集，验证集，测试集的定义转化为对象，用于函数调用
-train_file = "covid.train.csv"#标注训练集的文件
-test_file = "covid.test.csv"#标注测试集的文件
-train_dataset = CovidDatatest(train_file, "train")#将部分数据集数据转为一个包含训练数据的训练集对象
-val_dataset = CovidDatatest(train_file, "train")#将部分训练集数据转为一个包含验证数据的验证集对象
-test_dataset = CovidDatatest(test_file, "train")#将测试集数据转为一个包含测试数据的测试集对象
-
-batch_size = 16#设置每轮训练选取的数据量
-train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)#把数据集传进来，shuffle就是起到打乱数据的作用
-val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)#把数据集传进来，shuffle就是起到打乱数据的作用
-test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)#把数据集传进来，shuffle就是起到打乱数据的作用
-model = MyModel(inDim=93).to(device)#定义模型，输入参数为维度，将模型移动到设备（cpu/gpu）上
-loss = nn.MSELoss()#计算均方误差，用于回归任务
-optimizer = optim.SGD(model.parameters(), lr=config["lr"], momentum=config["momentum"])#随机梯度下降（优化器直接用官方的）
-train_val(model, train_loader, val_loader, device, config["epochs"], optimizer, loss, config["save_path"])#训练和验证模型，参数均为以上定义的对象，最后设置结果数据保存路径
-
-#训练，验证，测试。  以下即最后一步：测试
-#测试集
-#评估函数，得出测试结果
 def evaluate(save_path, test_loader, device, rel_path):
     #加载模型
     model = torch.load(save_path).to(device)#将训练出的数据转为张量传到设备上通过模型训练
@@ -143,6 +109,42 @@ def evaluate(save_path, test_loader, device, rel_path):
         for i, value in enumerate(rel):
             csvWriter.writerow([str(i), str(value)])
     print("文件已保存到{}".format((rel_path)))
+
+#超参
+device = "cuda" if torch.cuda.is_available() else "cpu"#若有gpu则选择cuda来跑模型，若没有gpu则选择cpu来跑模型
+print(device)
+#放置超参数
+config = {
+    "lr": 0.001,#学习率
+    "epochs": 20,#训练轮次
+    "momentum": 0.8,#惯性
+    "save_path": "model_save/best_model.pth",#训练结果保存的路径
+    "rel_path": "pred.csv"#预测值保存的路径
+}#便于查看参数以及灵活修改
+
+
+######################以上为函数准备工作，下面为训练集，验证集，测试集的定义(转化为对象，用于函数调用)
+train_file = "covid.train.csv"#标注训练集的文件
+test_file = "covid.test.csv"#标注测试集的文件
+train_dataset = CovidDatatest(train_file, "train")#将部分数据集数据转为一个包含训练数据的训练集对象
+val_dataset = CovidDatatest(train_file, "train")#将部分训练集数据转为一个包含验证数据的验证集对象
+test_dataset = CovidDatatest(test_file, "train")#将测试集数据转为一个包含测试数据的测试集对象
+
+batch_size = 16#设置每轮训练选取的数据量
+train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)#把数据集传进来，shuffle就是起到打乱数据的作用
+val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)#把数据集传进来，shuffle就是起到打乱数据的作用
+test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)#把数据集传进来，shuffle就是起到打乱数据的作用
+model = MyModel(inDim=93).to(device)#定义模型，输入参数为维度，将模型移动到设备（cpu/gpu）上
+loss = nn.MSELoss()#计算均方误差，用于回归任务
+optimizer = optim.SGD(model.parameters(), lr=config["lr"], momentum=config["momentum"])#随机梯度下降（优化器直接用官方的）
+train_val(model, train_loader, val_loader, device, config["epochs"], optimizer, loss, config["save_path"])#训练和验证模型，参数均为以上定义的对象，最后设置结果数据保存路径
+#训练，验证，测试。  以下即最后一步：测试
+#测试集
+#评估函数，得出测试结果
+evaluate(config["save_path"], test_loader, device, config["rel_path"])#评估模型，参数为保存路径，测试集对象，设备，预测结果保存路径
+
+
+
 
 
 
