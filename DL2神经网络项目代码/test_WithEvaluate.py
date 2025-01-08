@@ -50,11 +50,11 @@ class CovidDatatest(Dataset):  # 用于加载数据集
             _, col = get_feature_importance(feature, lable_data, feature_dim, column)
         col = col.tolist()#转化为列表
         if mode == "train":  # 训练集
-            indices = [i for i in range(len(csv_data)) if i % 5 != 0]  # 这是一个列表逢5取1
+            indices = [i for i in range(len(csv_data)) if i % 5 != 0]  # 这是一个列表逢5取1 取出验证集
             data = torch.tensor(csv_data[indices, :-1])  # 进入神经网络必须要张量tensor 把数据转化为张量
             self.y = torch.tensor(csv_data[indices, -1])  # y表示最后一列 用于训练
         elif mode == "val":  # 验证集
-            indices = [i for i in range(len(csv_data)) if i % 5 == 0]  # 逢5取0
+            indices = [i for i in range(len(csv_data)) if i % 5 == 0]  # 逢5取0 取出验证集
             data = torch.tensor(csv_data[indices, :-1])  # 进入神经网络必须要张量tensor把数据转化为张量
             self.y = torch.tensor(csv_data[indices, -1])  # y表示最后一列 用于训练
         else:
@@ -76,7 +76,7 @@ class CovidDatatest(Dataset):  # 用于加载数据集
 
 # 训练模型
 def train_val(model, train_loader, val_loader, device, epochs, optimizer, loss, save_path):  # 传入参数 模型参数 训练数据 ______
-    model = model.to(device)
+    model = model.to(device)#把模型放到设备上
     # epoch = 10
     plt_train_loss = []  # 就是用来记录所有训练轮次的loss
     plt_val_loss = []
@@ -84,29 +84,31 @@ def train_val(model, train_loader, val_loader, device, epochs, optimizer, loss, 
 
     # 开始训练的地方
     for epoch in range(epochs):  # 最主要的地方  训练每一轮loss
-        train_loss = 0.0
-        val_loss = 0.0
+        train_loss = 0.0#用于记录训练集的loss
+        val_loss = 0.0#用于记录验证集的loss
         start_time = time.time()  # 用来计算训练时间
 
         model.train()  # 模型调整为训练模式
-        for batch_x, batch_y in train_loader:  # 从训练集中去除一批数据x和y
+        for batch_x, batch_y in train_loader:  # 从训练集中取出一批数据x和y
             x, target = batch_x.to(device), batch_y.to(device)  # 放在gpu上训练
             pred = model(x)  # 将x通过模型得出预测值
             train_bat_loss = loss(pred, target, model)  # 传入预测值 模型mse就是求两个y的平方差
             train_bat_loss.backward()  # 梯度回传
-            optimizer.step()  # 起到更新训练模型的作用
-            optimizer.zero_grad()  # 清除梯度堆积 为下一轮训练做准备
-            train_loss += train_bat_loss.cpu().item()  # 张量没法在gpu上面跑，需要在cpu上面跑
-        plt_train_loss.append(train_loss / train_loader.dataset.__len__())  # train_loss是本次的轮次，要把它加载在所有loss里, 相加后去平均值
+            optimizer.step()#起到更新训练模型的作用
+            optimizer.zero_grad()#清除梯度堆积 为下一轮训练做准备
+            train_loss += train_bat_loss.cpu().item()#张量没法在gpu上面跑，需要在cpu上面跑
+            #train_loss是本次的轮次，要把它加载在所有loss里, 
+        plt_train_loss.append(train_loss/train_loader.dataset.__len__())#相加后的train_loss除以训练集长度得到平均值 
 
-        model.eval()  # 模型调整为测试模式，进行评估
-        with torch.no_grad():  # 在模型中计算都会计算梯度，在验证集中只是看模型的效果，不可以积攒梯度
-            for batch_x, batch_y in val_loader:  # 从验证数据集中获取一批数据
+        model.eval()#模型调整为测试模式，进行评估
+        #挑选好的模型，剔除不好的模型，让模型对于未知的数据也有好的泛化能力，能够有更为准确的预测
+        with torch.no_grad():#在模型中计算都会计算梯度，在验证集中只是看模型的效果，不可以积攒梯度
+            for batch_x, batch_y in val_loader:#从验证数据集中获取一批数据 
                 x, target = batch_x.to(device), batch_y.to(device)  # 将张量x,y移动到cpu上计算
                 pred = model(x)  # 从训练模型中的出预测值
                 val_bat_loss = loss(pred, target)  # 对于梯度回传，loss越小说明模型越好
                 val_loss += val_bat_loss.cpu().item()  # 累加损失值
-        plt_val_loss.append(val_loss / val_loader.__len__())  # 记录每一轮的valloss
+        plt_val_loss.append(val_loss / val_loader.__len__())  #记录每一轮的val_loss，表示模型在验证集上的预测结果与真实标签之间的差异
         if val_loss < main_val_loss:  # val_loss为当前的损失值，每次选择比当前轮次以前最小的损失值还要小的损失值
             torch.save(model, save_path)  # 保存好的模型到save_path路径
             main_val_loss = val_loss  # 更新最小损失值
@@ -166,9 +168,9 @@ config = {
 }  # 便于查看参数以及灵活修改
 
 
-######################以上为函数准备工作，下面为训练集，验证集，测试集的定义转化为对象，用于函数调用
+######################以上为函数准备工作，下面为训练集，验证集，测试集的定义(转化为对象，用于函数调用)
 
-#队训练流程进行改造（all_feature, feature_dim
+#队训练流程进行改造(all_feature, feature_dim 判断是所有列还是指定列)
 all_feature = True
 if all_feature:
     feature_dim = 93
@@ -190,11 +192,12 @@ loss = mseLoss_with_reg  # 采用正则项，进一步优化 （计算均方误�
 optimizer = optim.SGD(model.parameters(), lr=config["lr"], momentum=config["momentum"])  # 随机梯度下降（优化器直接用官方的）
 train_val(model, train_loader, val_loader, device, config["epochs"], optimizer, loss,
           config["save_path"])  # 训练和验证模型，参数均为以上定义的对象，最后设置结果数据保存路径
-evaluate(config["save_path"], test_loader, device, config["rel_path"])
-
 # 训练，验证，测试。  以下即最后一步：测试
 # 测试集
 # 评估函数，得出测试结果
+evaluate(config["save_path"], test_loader, device, config["rel_path"])#评估模型，参数为保存路径，测试集对象，设备，预测结果保存路径
+
+
 
 
 # for batch_x, batch_y in train_dataset:
