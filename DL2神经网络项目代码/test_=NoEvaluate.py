@@ -18,18 +18,19 @@ class CovidDatatest(Dataset):#用于加载数据集
             csv_data = np.array(ori_data[1:])[:, 1:].astype(float)    #不要第一列,去掉第一行第一列  将数据转化为numpy数组  astype是将数据转化为float类型
 
         if mode == "train":#训练集  
-            indices = [i for i in range(len(csv_data))if i % 5 != 0]#逢5取1
+            indices = [i for i in range(len(csv_data))if i % 5 != 0]#逢5取1 取出训练集
             data = torch.tensor(csv_data[indices, :-1])  # 进入神经网络必须要张量tensor 把数据转化为张量
             self.y = torch.tensor(csv_data[indices, -1]) #y表示最后一列 用于训练
         elif mode == "val":#验证集
-            indices = [i for i in range(len(csv_data)) if i % 5 == 0]#逢5取0
+            indices = [i for i in range(len(csv_data)) if i % 5 == 0]#逢5取0 取出验证集
             data = torch.tensor(csv_data[indices, :-1])  # 进入神经网络必须要张量tensor把数据转化为张量
             
             self.y = torch.tensor(csv_data[indices, -1])#y表示最后一列 用于训练
         else:
             indices = [i for i in range(len(csv_data))]#测试集
             data = torch.tensor(csv_data[indices])  # 进入神经网络必须要张量tensor把数据转化为张量
-        self.data = (data-data.mean(dim=0, keepdim=True))/data.std(dim=0, keepdim=True)#标准化数据
+
+        self.data = (data-data.mean(dim=0, keepdim=True))/data.std(dim=0, keepdim=True)#标准化取出的数据
         self.mode = mode   #表示当前是训练集还是测试集
 
     def __getitem__(self, idx):#使对象可以使用索引来访问数据集中的样本
@@ -45,7 +46,7 @@ class CovidDatatest(Dataset):#用于加载数据集
 
 #训练模型
 def train_val(model, train_loader, val_loader, device, epochs, optimizer, loss, save_path):#传入参数 模型参数 训练数据 ______
-    model = model.to(device)
+    model = model.to(device)#把模型放到设备上
     # epoch = 10
     plt_train_loss = []#就是用来记录所有训练轮次的loss
     plt_val_loss = []
@@ -53,12 +54,12 @@ def train_val(model, train_loader, val_loader, device, epochs, optimizer, loss, 
 
     #开始训练的地方
     for epoch in range(epochs):   #最主要的地方  训练每一轮loss
-        train_loss = 0.0
-        val_loss = 0.0
+        train_loss = 0.0#用于记录训练集的loss
+        val_loss = 0.0#用于记录验证集的loss
         start_time = time.time()    #用来计算训练时间
 
         model.train()       #模型调整为训练模式
-        for batch_x, batch_y in train_loader:      #从训练集中去除一批数据x和y
+        for batch_x, batch_y in train_loader:      #从训练集中取一批数据x和y
             x, target = batch_x.to(device), batch_y.to(device) #放在gpu上训练
             pred = model(x)         #将x通过模型得出预测值
             train_bat_loss = loss(pred, target) #mse就是求两个y的平方差
@@ -66,16 +67,19 @@ def train_val(model, train_loader, val_loader, device, epochs, optimizer, loss, 
             optimizer.step()#起到更新训练模型的作用
             optimizer.zero_grad()#清除梯度堆积 为下一轮训练做准备
             train_loss += train_bat_loss.cpu().item()#张量没法在gpu上面跑，需要在cpu上面跑
-        plt_train_loss.append(train_loss/train_loader.dataset.__len__())#train_loss是本次的轮次，要把它加载在所有loss里, 相加后去平均值  
+            #train_loss是本次的轮次，要把它加载在所有loss里, 
+        plt_train_loss.append(train_loss/train_loader.dataset.__len__())#相加后的train_loss除以训练集长度得到平均值 
+     
 
         model.eval()#模型调整为测试模式，进行评估
+        #挑选好的模型，剔除不好的模型，让模型对于未知的数据也有好的泛化能力，能够有更为准确的预测
         with torch.no_grad():#在模型中计算都会计算梯度，在验证集中只是看模型的效果，不可以积攒梯度
             for batch_x, batch_y in val_loader:#从验证数据集中获取一批数据 
                 x, target = batch_x.to(device), batch_y.to(device)#将张量x,y移动到cpu上计算
                 pred = model(x)#从训练模型中的出预测值
                 val_bat_loss = loss(pred, target)#对于梯度回传，loss越小说明模型越好
                 val_loss += val_bat_loss.cpu().item()#累加损失值
-        plt_val_loss.append(val_loss/ val_loader.__len__())#记录每一轮的valloss
+        plt_val_loss.append(val_loss/ val_loader.__len__())#记录每一轮的val_loss，表示模型在验证集上的预测结果与真实标签之间的差异
         if val_loss < main_val_loss:#val_loss为当前的损失值，每次选择比当前轮次以前最小的损失值还要小的损失值
             torch.save(model, save_path)#保存好的模型到save_path路径
             main_val_loss = val_loss#更新最小损失值
