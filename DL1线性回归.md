@@ -1,5 +1,3 @@
-# Myself recording of deepling learning （just some basics）
-
 ### 一个神经网络的训练过程
 
 #### 基础知识:
