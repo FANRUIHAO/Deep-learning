@@ -66,6 +66,19 @@
     让标签变成概率分布，然后求分布之间的loss
     nn.softmax() #将向量变成概率分布
 
+
+import torch
+import torch.nn as nn
+ y=torch.tensor([1,0,0,0],dtype=float) #将标签值转为张量
+ soft = nn.Softmax(dim=-1) #将向量变成概率分布
+#此时的y' 和 y^都是概率分布
+#利用CrossEntropy Loss：(交叉熵损失)来计算loss
+    分类：二分类和多分类 
+
+
+forward(前向过程)：即从输入到输出的过程
+backward(反向过程)：即从输出到输入的过程
+
     y'为预测值
     y^为标签值也就是真实值
 
@@ -73,6 +86,8 @@
 
     将图片转为矩阵 然后铺开成向量 进而进行分类
     loss.backward() #梯度回传 进行回归
+
+![卷积](images/image.png)
 
 4.图片分类神经网络的发展：
     (sota模型 最好的模型）
