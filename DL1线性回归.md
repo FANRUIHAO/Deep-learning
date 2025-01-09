@@ -119,4 +119,4 @@
 
 
 
-![卷积](DL2神经网络项目代码/images/image.png)
+![卷积](images/image.png)
