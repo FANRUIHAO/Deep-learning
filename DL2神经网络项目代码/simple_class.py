@@ -100,14 +100,14 @@ class food_Dataset(Dataset):#数据集
 
     def __getitem__(self, item): #用于索引数据集 便于取出数据
         if self.mode == "semi":
-            return self.transform(self.X[item]), self.X[item]
+            return self.transform(self.X[item]), self.X[item]#可以任意规定要返回的内容 此处返回了图片和图片的数据（半监督中可以返回一个x用于预测，返回一个x加入数据集）
         else:
             return self.transform(self.X[item]), self.Y[item]
 
     def __len__(self):#用于获取数据集的大小来确定迭代次数
         return len(self.X)
 
-class semiDataset(Dataset):#半监督数据集
+class semiDataset(Dataset):#半监督数据集  用到的是val_transform
     def __init__(self, no_label_loder, model, device, thres=0.99):
         x, y = self.get_label(no_label_loder, model, device, thres)
         if x == []:
