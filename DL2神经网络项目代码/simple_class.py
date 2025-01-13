@@ -73,7 +73,7 @@ class food_Dataset(Dataset):#数据集初始化定义 对其作一定的处理
                 file_dir = path + "/%02d" % i#用于拼接路径
                 file_list = os.listdir(file_dir)#存储指定目录下的所有文件和目录的名字
 
-                xi = np.zeros((len(file_list), HW, HW, 3), dtype=np.uint8)#规定具有特殊形状的数组  第一个参数为文件个数 |第二个参数为图片的高度和宽度| 第三个参数为通道数
+                xi = np.zeros((len(file_list), HW, HW, 3), dtype=np.uint8)#规定具有特殊形状的数组  |第一个参数为文件个数 |第二、三个参数为图片的高度和宽度| 第四个参数为通道数
                 yi = np.zeros(len(file_list), dtype=np.uint8)#创建一维数组 并且初始化为0 用于存储标签
 
                 # 列出文件夹下所有文件名字
@@ -139,14 +139,23 @@ class semiDataset(Dataset):#半监督数据集  用到的是val_transform
     def __len__(self):  #用于获取数据集的大小来确定迭代次数
         return len(self.X)
 
-def get_semi_loader(no_label_loder, model, device, thres): 
-    semiset = semiDataset(no_label_loder, model, device, thres) #获取半监督数据集
+def get_semi_loader(no_label_loder, model, device, thres): #获取半监督数据集
+    semiset = semiDataset(no_label_loder, model, device, thres) #定义对象用于存储半监督数据集
     if semiset.flag == False: #如果发现semidataset没有获得到有效数据
         return None #返回none
     else:#有加载到有效数据就返回semidataset
         semi_loader = DataLoader(semiset, batch_size=16, shuffle=False) #将semidataset转为dataloader
         return semi_loader
 
+
+
+#对于模型:先定义 再初始化 最后训练和验证
+#初始化时先定义卷积层要使用的 卷积、归一化、激活函数、池化 对象
+#然后再创建四层卷积层对象 将定义 将定义的卷积 归一化 激活函数 池化作为参数传入四层卷积层对象中
+#卷积层之间特征大小逐渐减小 通道数逐渐增加
+#在定义向前传播函数所用的卷积、归一化、激活函数、池化对象
+#以上准备工作都是用于forward函数的调用
+#向前传播整体过程为:卷积 归一化 激活函数 池化 三层卷积层 池化 拉直 全连接层 激活函数 全连接层
 class myModel(nn.Module):#定义模型
     def __init__(self, num_class):#初始化
         super(myModel, self).__init__() #继承nn.Module的初始化
@@ -180,7 +189,7 @@ class myModel(nn.Module):#定义模型
         self.relu2 = nn.ReLU() #激活函数
         self.fc2 = nn.Linear(1000, num_class)  #全连接层 1000-11
 
-    def forward(self, x):#向前传播
+    def forward(self, x):#向前传播 此函数规定了数据在模型里向前（训练、预测）的过程
         x = self.conv1(x) #卷积
         x = self.bn1(x) #归一化
         x = self.relu(x) #激活函数
@@ -193,7 +202,7 @@ class myModel(nn.Module):#定义模型
         x = self.fc1(x) #全连接层
         x = self.relu2(x) #激活函数
         x = self.fc2(x) #全连接层
-        return x
+        return x 
 
 def train_val(model, train_loader, val_loader, no_label_loader, device, epochs, optimizer, loss, thres, save_path): #训练和验证
     model = model.to(device) #将模型放到设备上
