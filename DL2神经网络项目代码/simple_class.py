@@ -202,52 +202,53 @@ class myModel(nn.Module):#定义模型
 
 def train_val(model, train_loader, val_loader, no_label_loader, device, epochs, optimizer, loss, thres, save_path): #训练和验证
     model = model.to(device) #将模型放到设备上
+    #定义并初始化训练所需各个变量 用于全监督以及半监督学习共同使用
     semi_loader = None #初始化半监督学习 用于存储半监督数据集
     plt_train_loss = [] #定义数组用于存储训练损失
     plt_val_loss = [] #定义数组用于存储验证损失
 
-    plt_train_acc = []
-    plt_val_acc = []
+    plt_train_acc = [] #定义变量用于存储训练准确率
+    plt_val_acc = [] #定义变量用于存储验证准确率
 
-    max_acc = 0.0
+    max_acc = 0.0 #初始化最大准确率
 
-    for epoch in range(epochs):
-        train_loss = 0.0
-        val_loss = 0.0
-        train_acc = 0.0
-        val_acc = 0.0
-        semi_loss = 0.0
-        semi_acc = 0.0
-
-
-        start_time = time.time()
-
-        model.train()
-        for batch_x, batch_y in train_loader:
-            x, target = batch_x.to(device), batch_y.to(device)
-            pred = model(x)
-            train_bat_loss = loss(pred, target)
-            train_bat_loss.backward()
+    for epoch in range(epochs): #遍历训练轮数
+        #定义并初始化各个变量
+        train_loss = 0.0 #训练损失值
+        val_loss = 0.0 #验证损失值
+        train_acc = 0.0 #训练准确率
+        val_acc = 0.0 #验证准确率
+        semi_loss = 0.0 #半监督损失值
+        semi_acc = 0.0 #半监督准确率
+        start_time = time.time() #用于计算训练时间
+        #训练
+        model.train() #设置模型为训练模式
+        for batch_x, batch_y in train_loader: #遍历训练数据集
+            x, target = batch_x.to(device), batch_y.to(device) #将数据和标签放到设备上训练
+            pred = model(x) #计算预测值
+            train_bat_loss = loss(pred, target) #计算预测值和真实值之间的损失
+            train_bat_loss.backward() #梯度回传
             optimizer.step()  # 更新参数 之后要梯度清零否则会累积梯度
-            optimizer.zero_grad()
-            train_loss += train_bat_loss.cpu().item()
-            train_acc += np.sum(np.argmax(pred.detach().cpu().numpy(), axis=1) == target.cpu().numpy())
-        plt_train_loss.append(train_loss / train_loader.__len__())
-        plt_train_acc.append(train_acc/train_loader.dataset.__len__()) #记录准确率，
-
-        if semi_loader!= None:
-            for batch_x, batch_y in semi_loader:
-                x, target = batch_x.to(device), batch_y.to(device)
-                pred = model(x)
-                semi_bat_loss = loss(pred, target)
-                semi_bat_loss.backward()
+            optimizer.zero_grad() #梯度清零
+            train_loss += train_bat_loss.cpu().item() #累加计算训练损失值
+            train_acc += np.sum(np.argmax(pred.detach().cpu().numpy(), axis=1) == target.cpu().numpy()) #累加计算训练准确率 并找到预测值最大的索引
+        plt_train_loss.append(train_loss / train_loader.__len__()) #记录平均训练损失值
+        plt_train_acc.append(train_acc/train_loader.dataset.__len__()) #记录平均训练准确率，
+#以上为有标签的数据集的训练
+#下面是对半监督模式的数据集是否为空进行检测，如果不为空那就对半监督模式的数据集进行训练
+        if semi_loader!= None:#如果半监督训练集不为空
+            for batch_x, batch_y in semi_loader: #从那个半监督学习数据集中按批为单位取出数据
+                x, target = batch_x.to(device), batch_y.to(device) #将数据和标签放到设备上训练
+                pred = model(x) #计算预测值
+                semi_bat_loss = loss(pred, target) #计算半监督模式下预测值和真实值之间的损失
+                semi_bat_loss.backward() #对半监督模式下的损失进行梯度回传
                 optimizer.step()  # 更新参数 之后要梯度清零否则会累积梯度
-                optimizer.zero_grad()
-                semi_loss += train_bat_loss.cpu().item()
-                semi_acc += np.sum(np.argmax(pred.detach().cpu().numpy(), axis=1) == target.cpu().numpy())
-            print("半监督数据集的训练准确率为", semi_acc/train_loader.dataset.__len__())
-
-
+                optimizer.zero_grad() #进行梯度清零
+                semi_loss += train_bat_loss.cpu().item() #累加计算半监督模式下的损失值
+                semi_acc += np.sum(np.argmax(pred.detach().cpu().numpy(), axis=1) == target.cpu().numpy()) #累加计算半监督模式下的准确率
+            print("半监督数据集的训练准确率为", semi_acc/train_loader.dataset.__len__()) #打印输出
+        
+        #以下为验证部分
         model.eval()
         with torch.no_grad():
             for batch_x, batch_y in val_loader:
@@ -301,14 +302,14 @@ no_label_loader = DataLoader(no_label_set, batch_size=16, shuffle=False)
 # model = myModel(11)
 model, _ = initialize_model("vgg", 11, use_pretrained=True)
 
-
+#超参数
 lr = 0.001
 loss = nn.CrossEntropyLoss()
 optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
 device = "cuda" if torch.cuda.is_available() else "cpu"
-save_path = "model_save/best_model.pth"
-epochs = 15
-thres = 0.99
+save_path = "model_save/best_model.pth" 
+epochs = 15 #设置训练轮数
+thres = 0.99 #设置阈值
 
 
 
