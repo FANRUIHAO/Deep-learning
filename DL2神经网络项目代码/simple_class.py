@@ -11,7 +11,6 @@ import time
 import matplotlib.pyplot as plt
 from model_utils.model import initialize_model
 
-
 def seed_everything(seed):#设置随机种子 确保代码的可重复性和结果的可复现性  是的结果更加稳定，便于调试
     torch.manual_seed(seed) # 为CPU设置随机种子
     torch.cuda.manual_seed(seed) # 为当前GPU设置随机种子
@@ -25,11 +24,7 @@ def seed_everything(seed):#设置随机种子 确保代码的可重复性和结�
 #################################################################
 seed_everything(0)
 ###############################################
-
-
-HW = 224
-
-
+HW = 224 #设置图片的高度和宽度
 
 train_transform = transforms.Compose(#训练数据增强
     [
@@ -249,23 +244,23 @@ def train_val(model, train_loader, val_loader, no_label_loader, device, epochs, 
             print("半监督数据集的训练准确率为", semi_acc/train_loader.dataset.__len__()) #打印输出
         
         #以下为验证部分
-        model.eval()
-        with torch.no_grad():
-            for batch_x, batch_y in val_loader:
-                x, target = batch_x.to(device), batch_y.to(device)
-                pred = model(x)
-                val_bat_loss = loss(pred, target)
-                val_loss += val_bat_loss.cpu().item()
-                val_acc += np.sum(np.argmax(pred.detach().cpu().numpy(), axis=1) == target.cpu().numpy())
-        plt_val_loss.append(val_loss / val_loader.dataset.__len__())
-        plt_val_acc.append(val_acc / val_loader.dataset.__len__())
+        model.eval() #设置模型为验证模式
+        with torch.no_grad(): #取消梯度计算 用于验证集
+            for batch_x, batch_y in val_loader: #按批次取出验证数据集计算准确率，提高效率
+                x, target = batch_x.to(device), batch_y.to(device) #将数据和标签放到设备上验证
+                pred = model(x) #计算预测值
+                val_bat_loss = loss(pred, target) #计算预测值与真实值之间的损失
+                val_loss += val_bat_loss.cpu().item() #累加计算验证损失值
+                val_acc += np.sum(np.argmax(pred.detach().cpu().numpy(), axis=1) == target.cpu().numpy()) #将张量转化为numpy数组，可以直接用于数值运算 numpy只能在cpu上运行  比较预测值和真实值的类别 结果为一个布尔值的数组 通过np.sum()函数将布尔值转为整数值0或者1  最终得到的是每轮批次中预测正确的样本个数
+        plt_val_loss.append(val_loss / val_loader.dataset.__len__()) #将验证集上的平均损失值存入数组 以便后续绘制损失曲线
+        plt_val_acc.append(val_acc / val_loader.dataset.__len__()) #将验证集上的平均准确率存入数组 以便后续绘制准确率曲线
 
-        if epoch%3 == 0 and plt_val_acc[-1] > 0.6:
-            semi_loader = get_semi_loader(no_label_loader, model, device, thres)
+        if epoch%3 == 0 and plt_val_acc[-1] > 0.6: #设置准确率大于0.6时才可以把半监督的数据集放入训练集中训练
+            semi_loader = get_semi_loader(no_label_loader, model, device, thres) #定义对象用于存储半监督数据集
 
-        if val_acc > max_acc:
-            torch.save(model, save_path)
-            max_acc = val_loss
+        if val_acc > max_acc: #如果验证的准确率大于最大准确率
+            torch.save(model, save_path) #设置模型保存路径
+            max_acc = val_loss #更新最大准确率
 
         print('[%03d/%03d] %2.2f sec(s) TrainLoss : %.6f | valLoss: %.6f Trainacc : %.6f | valacc: %.6f' % \
               (epoch, epochs, time.time() - start_time, plt_train_loss[-1], plt_val_loss[-1], plt_train_acc[-1], plt_val_acc[-1])
@@ -284,33 +279,41 @@ def train_val(model, train_loader, val_loader, no_label_loader, device, epochs, 
     plt.legend(["train", "val"])
     plt.show()
 
-# path = r"F:\pycharm\beike\classification\food_classification\food-11\training\labeled"
-# train_path = r"F:\pycharm\beike\classification\food_classification\food-11\training\labeled"
-# val_path = r"F:\pycharm\beike\classification\food_classification\food-11\validation"
-train_path = r"C:\Users\24494\Desktop\11\第四五节_分类代码\food_classification\food-11_sample\training\labeled"
-val_path = r"C:\Users\24494\Desktop\11\第四五节_分类代码\food_classification\food-11_sample\validation"
-no_label_path = r"C:\Users\24494\Desktop\11\第四五节_分类代码\food_classification\food-11_sample\training\unlabeled\00"
+train_path = r"C:\Users\24494\Desktop\11\第四五节_分类代码\food_classification\food-11_sample\training\labeled" #设置训练集数据的路径
+val_path = r"C:\Users\24494\Desktop\11\第四五节_分类代码\food_classification\food-11_sample\validation" #设置验证集数据的路径
+no_label_path = r"C:\Users\24494\Desktop\11\第四五节_分类代码\food_classification\food-11_sample\training\unlabeled\00" #设置无标签数据的路径 用于半监督学习
 
-train_set = food_Dataset(train_path, "train")
-val_set = food_Dataset(val_path, "val")
-no_label_set = food_Dataset(no_label_path, "semi")
+train_set = food_Dataset(train_path, "train") #定义训练数据集对象 调用对应的变量 将数据对应的文件的路径导入 加载数据
+val_set = food_Dataset(val_path, "val") #定义验证数据集对象 调用对应的变量 将对应数据的文件路径导入 加载数据
+no_label_set = food_Dataset(no_label_path, "semi") #定义无标签数据集对象 调用对应的变量 将对应的数据文件路径导入 加载数据
 
-train_loader = DataLoader(train_set, batch_size=16, shuffle=True)
-val_loader = DataLoader(val_set, batch_size=16, shuffle=True)
-no_label_loader = DataLoader(no_label_set, batch_size=16, shuffle=False)
-
-# model = myModel(11)
-model, _ = initialize_model("vgg", 11, use_pretrained=True)
-
-#超参数
-lr = 0.001
-loss = nn.CrossEntropyLoss()
-optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
+#超参数 也就是使用到字典的方式来存储参数
+lr = 0.001 #设置学习率
+loss = nn.CrossEntropyLoss() #设置损失函数（直接调用pytorch中的交叉熵损失函数）
+optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4) #设置优化器（直接调用pytorch中的AdamW优化器， 传入参数: 模型参数， 学习率， 权重衰减）
 device = "cuda" if torch.cuda.is_available() else "cpu"
 save_path = "model_save/best_model.pth" 
 epochs = 15 #设置训练轮数
 thres = 0.99 #设置阈值
 
+#dataloader可以将数据集按批次加载  参数中train_set设置数据集对象也就是上面foo_Dataset定义的对象，直接调用food_Dataset方法 batch_size设置批次大小 shuffle可以将数据打乱提高模型的泛化能力
+train_loader = DataLoader(train_set, batch_size=16, shuffle=True) #训练集的dataloader
+val_loader = DataLoader(val_set, batch_size=16, shuffle=True) #验证集的dataloader
+no_label_loader = DataLoader(no_label_set, batch_size=16, shuffle=False) #无标签数据集的dataloader  用于半监督学习，其中模型通过无标签数据进行自我训练以及伪标签生成
 
+# model = myModel(11) #这是自己定义的模型
+model, _ = initialize_model("vgg", 11, use_pretrained=True)#调用initialize_model来初始化预定义模型 并且此时使用的是vgg模型 11表示输出层类别数 ，通常用于分类任务 use_pretrained表示是否使用预训练模型的权重
 
-train_val(model, train_loader, val_loader, no_label_loader, device, epochs, optimizer, loss, thres, save_path)
+#完成半监督学习
+train_val(model, train_loader, val_loader, no_label_loader, device, epochs, optimizer, loss, thres, save_path)#直接将模型，训练集，验证集，无标签数据集，设备，训练轮数，优化器，损失函数，阈值，保存路径一体化传入train_val函数 通过调用train_val函数完成半监督学习整个过程
+
+#################从底层到顶层 从上至下 定义类 函数 变量 一层一层调用
+#过程:
+#数据准备:
+    #1.train_loader 提供有标签的数据供模型进行训练
+    #2.val_loader 提供有标签的数据供模型进行验证，帮助评估模型的性能并且防止过拟合
+    #3.no_label_loader 提供无标签数据 用于半监督学习，通常结合模型的预测生成为标签，然后在训练中使用这些伪标签来增强学习
+#模型初始化:
+    #4.initialize_model 初始化预定义VGG模型，为以下的train_val函数提供模型
+#####训练和验证过程:
+    #5.train_val综合所有准备好的数据，模型，设备，超参数，优化器，损失函数，阈值，保存路径，顺序完成训练和验证过程
