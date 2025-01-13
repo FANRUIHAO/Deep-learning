@@ -133,79 +133,78 @@ class semiDataset(Dataset):#半监督数据集  用到的是val_transform
                 pred_prob.extend(pred_max.cpu().numpy().tolist()) #将最大的概率转为列表
                 labels.extend(pred_value.cpu().numpy().tolist()) #将预测值转为列表
 
-        for index, prob in enumerate(pred_prob): #遍历预测概率
-            if prob > thres:
-                x.append(no_label_loder.dataset[index][1])   #调用到原始的getitem
-                y.append(labels[index])
+        for index, prob in enumerate(pred_prob): #遍历预测概率 用于筛选出概率大于阈值的数据
+            if prob > thres: #如果概率大于阈值
+                x.append(no_label_loder.dataset[index][1])   #调用到原始的getitem 将数据装入x中
+                y.append(labels[index]) #将标签装入y中 这个标签就是预测的标签
         return x, y
 
-    def __getitem__(self, item):
-        return self.transform(self.X[item]), self.Y[item]
-    def __len__(self):
+    def __getitem__(self, item):    #对数据集进行索引 便于取出数据
+        return self.transform(self.X[item]), self.Y[item] #进行数据增强 然后返回数据
+    def __len__(self):  #用于获取数据集的大小来确定迭代次数
         return len(self.X)
 
-def get_semi_loader(no_label_loder, model, device, thres):
-    semiset = semiDataset(no_label_loder, model, device, thres)
-    if semiset.flag == False:
-        return None
-    else:
-        semi_loader = DataLoader(semiset, batch_size=16, shuffle=False)
+def get_semi_loader(no_label_loder, model, device, thres): 
+    semiset = semiDataset(no_label_loder, model, device, thres) #获取半监督数据集
+    if semiset.flag == False: #如果发现semidataset没有获得到有效数据
+        return None #返回none
+    else:#有加载到有效数据就返回semidataset
+        semi_loader = DataLoader(semiset, batch_size=16, shuffle=False) #将semidataset转为dataloader
         return semi_loader
 
-class myModel(nn.Module):
-    def __init__(self, num_class):
-        super(myModel, self).__init__()
-        #3 *224 *224  -> 512*7*7 -> 拉直 -》全连接分类
-        self.conv1 = nn.Conv2d(3, 64, 3, 1, 1)    # 64*224*224
-        self.bn1 = nn.BatchNorm2d(64)
-        self.relu = nn.ReLU()
-        self.pool1 = nn.MaxPool2d(2)   #64*112*112
+class myModel(nn.Module):#定义模型
+    def __init__(self, num_class):#初始化
+        super(myModel, self).__init__() #继承nn.Module的初始化
+        #3 *224 *224  -> 512*7*7 -> 拉直 ->全连接分类
+        self.conv1 = nn.Conv2d(3, 64, 3, 1, 1)    #卷积 64*224*224
+        self.bn1 = nn.BatchNorm2d(64)  #归一化
+        self.relu = nn.ReLU() #激活函数
+        self.pool1 = nn.MaxPool2d(2)   # 规定池化窗口大小 然后取该区域的最大值作为输出，并将图像的尺寸缩小   64*112*112
 
-
-        self.layer1 = nn.Sequential(
-            nn.Conv2d(64, 128, 3, 1, 1),    # 128*112*112
-            nn.BatchNorm2d(128),
-            nn.ReLU(),
-            nn.MaxPool2d(2)   #128*56*56
+        self.layer1 = nn.Sequential( #卷积层1 用于提取特征
+            nn.Conv2d(64, 128, 3, 1, 1),    #卷积 128*112*112
+            nn.BatchNorm2d(128), #归一化
+            nn.ReLU(), #激活函数
+            nn.MaxPool2d(2)   # 池化 128*56*56
         )
-        self.layer2 = nn.Sequential(
+        self.layer2 = nn.Sequential( #卷积层2 用于提取特征
             nn.Conv2d(128, 256, 3, 1, 1),
             nn.BatchNorm2d(256),
             nn.ReLU(),
             nn.MaxPool2d(2)   #256*28*28
         )
-        self.layer3 = nn.Sequential(
+        self.layer3 = nn.Sequential( #卷积层3 用于提取特征
             nn.Conv2d(256, 512, 3, 1, 1),
             nn.BatchNorm2d(512),
             nn.ReLU(),
             nn.MaxPool2d(2)   #512*14*14
         )
 
-        self.pool2 = nn.MaxPool2d(2)    #512*7*7
-        self.fc1 = nn.Linear(25088, 1000)   #25088->1000
-        self.relu2 = nn.ReLU()
-        self.fc2 = nn.Linear(1000, num_class)  #1000-11
+        self.pool2 = nn.MaxPool2d(2)    #池化 512*7*7
+        self.fc1 = nn.Linear(25088, 1000)   # 全连接层 25088-1000
+        self.relu2 = nn.ReLU() #激活函数
+        self.fc2 = nn.Linear(1000, num_class)  #全连接层 1000-11
 
-    def forward(self, x):
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = self.relu(x)
-        x = self.pool1(x)
-        x = self.layer1(x)
-        x = self.layer2(x)
-        x = self.layer3(x)
-        x = self.pool2(x)
-        x = x.view(x.size()[0], -1)
-        x = self.fc1(x)
-        x = self.relu2(x)
-        x = self.fc2(x)
+    def forward(self, x):#向前传播
+        x = self.conv1(x) #卷积
+        x = self.bn1(x) #归一化
+        x = self.relu(x) #激活函数
+        x = self.pool1(x) #池化
+        x = self.layer1(x) #卷积层1
+        x = self.layer2(x) #卷积层2
+        x = self.layer3(x) #卷积层3
+        x = self.pool2(x) #池化
+        x = x.view(x.size()[0], -1) #拉直 用于全连接层
+        x = self.fc1(x) #全连接层
+        x = self.relu2(x) #激活函数
+        x = self.fc2(x) #全连接层
         return x
 
-def train_val(model, train_loader, val_loader, no_label_loader, device, epochs, optimizer, loss, thres, save_path):
-    model = model.to(device)
-    semi_loader = None
-    plt_train_loss = []
-    plt_val_loss = []
+def train_val(model, train_loader, val_loader, no_label_loader, device, epochs, optimizer, loss, thres, save_path): #训练和验证
+    model = model.to(device) #将模型放到设备上
+    semi_loader = None #初始化半监督学习 用于存储半监督数据集
+    plt_train_loss = [] #定义数组用于存储训练损失
+    plt_val_loss = [] #定义数组用于存储验证损失
 
     plt_train_acc = []
     plt_val_acc = []
