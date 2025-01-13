@@ -31,70 +31,70 @@ HW = 224
 
 
 
-train_transform = transforms.Compose(#数据增强
+train_transform = transforms.Compose(#训练数据增强
     [
         transforms.ToPILImage(),   #224， 224， 3模型  ：3, 224, 224
         transforms.RandomResizedCrop(224),#对图像进行随机裁剪和缩放 最终输出一个固定大小的图像
-        transforms.RandomRotation(50),
-        transforms.ToTensor()
+        transforms.RandomRotation(50),#对图像进行随机旋转
+        transforms.ToTensor()#将图像转化为张量
     ]
 )
 
-val_transform = transforms.Compose(
+val_transform = transforms.Compose(#验证数据增强
     [
         transforms.ToPILImage(),   #224， 224， 3模型  ：3, 224, 224
-        transforms.ToTensor()
+        transforms.ToTensor()#将图像转化为张量
     ]
 )
 
-class food_Dataset(Dataset):#数据集
+class food_Dataset(Dataset):#数据集初始化定义 对其作一定的处理
     def __init__(self, path, mode="train"):#初始化
         self.mode = mode#模式
-        if mode == "semi":#半监督
-            self.X = self.read_file(path)
+        if mode == "semi":#半监督模式
+            self.X = self.read_file(path)#调用方法读取文件中的图片装入对象中
         else:#全监督
-            self.X, self.Y = self.read_file(path)
+            self.X, self.Y = self.read_file(path)#从文件读取数据装入对象中
             self.Y = torch.LongTensor(self.Y)  #标签转为长整形
 
-        if mode == "train":
-            self.transform = train_transform
+        if mode == "train":#训练模式
+            self.transform = train_transform#使用数据增强
         else:
-            self.transform = val_transform
+            self.transform = val_transform#使用数据增强
 
     def read_file(self, path):#读取文件(即图片)
         if self.mode == "semi":#半监督的情况
-            file_list = os.listdir(path)
-            xi = np.zeros((len(file_list), HW, HW, 3), dtype=np.uint8)
+            file_list = os.listdir(path)#存储指定目录下的所有文件和目录的名字
+            xi = np.zeros((len(file_list), HW, HW, 3), dtype=np.uint8)#规定具有特殊形状的数组  第一个参数为文件个数 |第二个参数为图片的高度和宽度| 第三个参数为通道数
             # 列出文件夹下所有文件名字
-            for j, img_name in enumerate(file_list):
-                img_path = os.path.join(path, img_name)
-                img = Image.open(img_path)
-                img = img.resize((HW, HW))
-                xi[j, ...] = img
-            print("读到了%d个数据" % len(xi))
-            return xi
+            for j, img_name in enumerate(file_list):#将存储的文件名字和索引值对应起来然后遍历
+                img_path = os.path.join(path, img_name)#将文件名和路径连接起来
+                img = Image.open(img_path)#打开图片
+                img = img.resize((HW, HW))#调整图片大小
+                xi[j, ...] = img#将图片装入数组中
+            print("读到了%d个数据" % len(xi))#打印读取到了多少个文件
+            return xi#返回图片数据
         else:#全监督的情况
-            for i in tqdm(range(11)):
-                file_dir = path + "/%02d" % i
-                file_list = os.listdir(file_dir)
+            for i in tqdm(range(11)):#显示读取文件的进度条
+                file_dir = path + "/%02d" % i#用于拼接路径
+                file_list = os.listdir(file_dir)#存储指定目录下的所有文件和目录的名字
 
-                xi = np.zeros((len(file_list), HW, HW, 3), dtype=np.uint8)
-                yi = np.zeros(len(file_list), dtype=np.uint8)
+                xi = np.zeros((len(file_list), HW, HW, 3), dtype=np.uint8)#规定具有特殊形状的数组  第一个参数为文件个数 |第二个参数为图片的高度和宽度| 第三个参数为通道数
+                yi = np.zeros(len(file_list), dtype=np.uint8)#创建一维数组 并且初始化为0 用于存储标签
 
                 # 列出文件夹下所有文件名字
-                for j, img_name in enumerate(file_list):
-                    img_path = os.path.join(file_dir, img_name)
-                    img = Image.open(img_path)
-                    img = img.resize((HW, HW))
-                    xi[j, ...] = img
-                    yi[j] = i
+                for j, img_name in enumerate(file_list):#将存储的文件名字和索引值对应起来然后遍历
+                    img_path = os.path.join(file_dir, img_name) #将文件名和路径连接起来
+                    img = Image.open(img_path) #打开图片
+                    img = img.resize((HW, HW)) #调整图片高度和宽度
+                    xi[j, ...] = img #将图片装入数组x中
+                    yi[j] = i #将标签装入数组y中
 
-                if i == 0:
-                    X = xi
-                    Y = yi
-                else:
-                    X = np.concatenate((X, xi), axis=0)
-                    Y = np.concatenate((Y, yi), axis=0)
+                if i == 0: #第一次读取数据时
+                    X = xi #将xi赋值给X 
+                    Y = yi #将yi赋值给Y
+                else: #第一次之后的数据读取
+                    X = np.concatenate((X, xi), axis=0) #将xi和X合并 用于存储所有的图片数据
+                    Y = np.concatenate((Y, yi), axis=0) #将yi和Y合并 用于存储所有的标签数据
             print("读到了%d个数据" % len(Y))
             return X, Y
 
@@ -109,32 +109,31 @@ class food_Dataset(Dataset):#数据集
 
 class semiDataset(Dataset):#半监督数据集  用到的是val_transform
     def __init__(self, no_label_loder, model, device, thres=0.99):
-        x, y = self.get_label(no_label_loder, model, device, thres)
-        if x == []:
-            self.flag = False
-
+        x, y = self.get_label(no_label_loder, model, device, thres)#获取原始数据以及标签
+        if x == []:#进行判断semidataset是否加载到了有效数据
+            self.flag = False#用flag==false来表示semidataset没有加载到有效数据
         else:
-            self.flag = True
-            self.X = np.array(x)
-            self.Y = torch.LongTensor(y)
-            self.transform = train_transform
-    def get_label(self, no_label_loder, model, device, thres):
-        model = model.to(device)
-        pred_prob = []
-        labels = []
-        x = []
-        y = []
-        soft = nn.Softmax()
-        with torch.no_grad():
-            for bat_x, _ in no_label_loder:
-                bat_x = bat_x.to(device)
-                pred = model(bat_x)
-                pred_soft = soft(pred)
-                pred_max, pred_value = pred_soft.max(1)
-                pred_prob.extend(pred_max.cpu().numpy().tolist())
-                labels.extend(pred_value.cpu().numpy().tolist())
+            self.flag = True#用flag==true来表示semidataset加载到了有效数据
+            self.X = np.array(x) #将数据转为数组
+            self.Y = torch.LongTensor(y) #将标签转为长整形
+            self.transform = train_transform #使用数据增强 用于训练
+    def get_label(self, no_label_loder, model, device, thres):#获得标签
+        model = model.to(device) #将模型放到设备上
+        pred_prob = [] #存储预测概率
+        labels = [] #存储标签
+        x = []  #存储图片 用于返回
+        y = [] #存储标签 用于返回
+        soft = nn.Softmax() #使用softmax函数 用于将输出转为概率
+        with torch.no_grad(): #取消梯度计算 用于测试集and验证集  
+            for bat_x, _ in no_label_loder: #遍历无标签数据集 
+                bat_x = bat_x.to(device) #将数据放到设备上
+                pred = model(bat_x) #进行预测
+                pred_soft = soft(pred) #将输出转为概率
+                pred_max, pred_value = pred_soft.max(1) #取出概率最大的值和索引
+                pred_prob.extend(pred_max.cpu().numpy().tolist()) #将最大的概率转为列表
+                labels.extend(pred_value.cpu().numpy().tolist()) #将预测值转为列表
 
-        for index, prob in enumerate(pred_prob):
+        for index, prob in enumerate(pred_prob): #遍历预测概率
             if prob > thres:
                 x.append(no_label_loder.dataset[index][1])   #调用到原始的getitem
                 y.append(labels[index])
