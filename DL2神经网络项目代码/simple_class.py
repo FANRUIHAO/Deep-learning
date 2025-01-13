@@ -34,7 +34,7 @@ HW = 224
 train_transform = transforms.Compose(#数据增强
     [
         transforms.ToPILImage(),   #224， 224， 3模型  ：3, 224, 224
-        transforms.RandomResizedCrop(224),
+        transforms.RandomResizedCrop(224),#对图像进行随机裁剪和缩放 最终输出一个固定大小的图像
         transforms.RandomRotation(50),
         transforms.ToTensor()
     ]
