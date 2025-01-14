@@ -140,7 +140,7 @@ class semiDataset(Dataset):#半监督数据集  用到的是val_transform
         return len(self.X)
 
 def get_semi_loader(no_label_loder, model, device, thres): #获取半监督数据集
-    semiset = semiDataset(no_label_loder, model, device, thres) #定义对象用于存储半监督数据集
+    semiset = semiDataset(no_label_loder, model, device, thres) #定义对象调用semiDataset计算出并存储半监督数据集
     if semiset.flag == False: #如果发现semidataset没有获得到有效数据
         return None #返回none
     else:#有加载到有效数据就返回semidataset
