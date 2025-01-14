@@ -275,18 +275,18 @@ def train_val(model, train_loader, val_loader, no_label_loader, device, epochs, 
               (epoch, epochs, time.time() - start_time, plt_train_loss[-1], plt_val_loss[-1], plt_train_acc[-1], plt_val_acc[-1])
               )  # 打印训练结果。 注意python语法， %2.2f 表示小数位为2的浮点数， 后面可以对应。
 
-    plt.plot(plt_train_loss)
-    plt.plot(plt_val_loss)
-    plt.title("loss")
-    plt.legend(["train", "val"])
-    plt.show()
+    plt.plot(plt_train_loss)#设置训练损失值 用于绘制损失曲线
+    plt.plot(plt_val_loss) #设置验证损失值 用于绘制损失曲线
+    plt.title("loss") #设置标题
+    plt.legend(["train", "val"]) #设置图例
+    plt.show() #显示损失图像
 
 
-    plt.plot(plt_train_acc)
-    plt.plot(plt_val_acc)
-    plt.title("acc")
-    plt.legend(["train", "val"])
-    plt.show()
+    plt.plot(plt_train_acc) #设置训练准确率 用于绘制准确率曲线
+    plt.plot(plt_val_acc) #设置验证准确率 用于绘制准确率曲线
+    plt.title("acc") #设置标题
+    plt.legend(["train", "val"]) #设置图例
+    plt.show() #显示准确率图像
 
 train_path = r"C:\Users\24494\Desktop\11\第四五节_分类代码\food_classification\food-11_sample\training\labeled" #设置训练集数据的路径
 val_path = r"C:\Users\24494\Desktop\11\第四五节_分类代码\food_classification\food-11_sample\validation" #设置验证集数据的路径
@@ -315,6 +315,11 @@ model, _ = initialize_model("vgg", 11, use_pretrained=True)#调用initialize_mod
 
 #完成半监督学习
 train_val(model, train_loader, val_loader, no_label_loader, device, epochs, optimizer, loss, thres, save_path)#直接将模型，训练集，验证集，无标签数据集，设备，训练轮数，优化器，损失函数，阈值，保存路径一体化传入train_val函数 通过调用train_val函数完成半监督学习整个过程
+
+
+
+
+
 
 #################从底层到顶层 从上至下 定义类 函数 变量 一层一层调用
 #过程:
