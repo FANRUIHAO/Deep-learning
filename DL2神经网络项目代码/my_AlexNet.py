@@ -10,9 +10,9 @@ class vgg_layer(nn.Module):
         self.pool = nn.MaxPool2d(2)
 
     def forward(self, x):#模型向前
-        x = self.conv1(x)
-        x = self.conv2(x)
-        x = self.pool(x)
+        x = self.conv1(x) #实例化卷积
+        x = self.conv2(x) #实例化卷积
+        x = self.pool(x) #实例化池化
 
         return x
 
