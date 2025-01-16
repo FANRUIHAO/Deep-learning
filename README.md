@@ -1,1 +1,1 @@
-# Myself recording of deepling learning （just some basics）
+# A recording of deepling learning （just some basics）
