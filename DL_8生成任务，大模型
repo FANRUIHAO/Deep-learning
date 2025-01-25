@@ -1,0 +1,10 @@
+### 常见输入输出
+
+输入一段，输出一段  Seq2 seq
+    输出长度由模型自行决定
+    本质上是序列到序列的任务，采用的架构就是transformer架构
+
+transformer架构：
+    结构：
+    1、encoder（bert就属于encoder）
+    2、decoder
