@@ -24,34 +24,41 @@
     定义函数create__data用于生成数据
             def create_data(w, b, data_num):
                 x = torch.normal(0, 1, (data_num, len(w)))#设置数据的形状,data_num表示数据的个数,len(w)表示数据的维度
-                y = torch.matmul(x, w)+b#matmul表示矩阵相乘
+                y = torch.matmul(x, w)+b//matmul表示矩阵相乘
 
                 noise = torch.normal(0, 0.01, y.shape)#噪声要加到y上,给y做一个扰动
                 y += noise          #加上噪声
 
                 return x, y
 
-            num = 500  #表示生成500个数据
-            #根据X,Y推测出w,b
-            X, Y = create_data(true_w, true_b, num) 
-            true_w = torch.tensor([8.1,2,2,4])#转为列表 w （张量）
-            true_b = torch.tensor(1.1)
+        num = 500  #表示生成500个数据
+        #根据X,Y推测出w,b
+        X, Y = create_data(true_w, true_b, num) 
+        true_w = torch.tensor([8.1,2,2,4])#转为列表 w （张量）
+        true_b = torch.tensor(1.1)
             
-            plt.scatter(X[:, 3], Y, 1)  #绘制散点图,X[:, 3]表示取X的第四列,Y表示Y的值,1表示点的大小
-            plt.show()
+        plt.scatter(X[:, 3], Y, 1)  #绘制散点图,X[:, 3]表示取X的第四列,Y表示Y的值,1表示点的大小
+        plt.show()
 ---
     定义函数data_provider函数用于取数据
         def data_provider(data, label, batchsize):     #每次访问这个函数可以提供一批数据
             length = len(label)#这个是用于计算数据的长度
             indices = list(range(length))#range(length)表示0-500的列表
-            #不能按顺序取  需要把数据打包
+            #不能按顺序取  需要把数据打乱
             random.shuffle(indices)#打乱数据,也就是把0-500的数据顺序打乱
 
-            for each in range(0, length, batchsize):#每次取batchsize个数据,batchsize是根据传过来的参数定的
+            for each in range(0, length, batchsize)://每次取batchsize个数据,batchsize是根据传过来的参数定的
                 get_indices = indices[each: each+batchsize]#每次取batchsize个数据
                 get_data = data[get_indices]#根据索引取数据
                 get_label = label[get_indices]#根据索引取标签,标签是用于推算结果的
+//通过索引取数据的优势：
+随机抽样：通过索引可以实现随机抽样，这在训练机器学习模型时非常重要。随机抽样可以打破数据的顺序性，防止模型过拟合。
 
+批量处理：通过索引可以方便地实现批量处理（batch processing）。在处理大规模数据时，分批处理可以减少内存占用，提高计算效率。
+
+数据增强：在深度学习中，数据增强（data augmentation）是常用的技术。通过索引可以方便地对数据进行各种变换和增强。
+
+灵活性：使用索引可以更灵活地操作数据。例如，可以根据某些条件筛选数据，或者在不同的数据集之间进行交叉验证。
                 yield get_data, get_label  #有存档点的return,下次调用时,从这里开始
 
             #比如
