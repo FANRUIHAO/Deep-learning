@@ -48,7 +48,14 @@
 注：1、bart为生成模型=编码器+incodder+decodder
     训练时与用多种花样的编码
     2、为什么还要进行预训练，因为用的场景不一样，数据也是一类的，范围也不同，需要针对性数据训练
+    3、评价指标：ciderD_scorer用于判断文本相似度(y and y^)即准确率
+    4、optimizer优化器
+    5、build_bart_inputs用于生成mask来补充为0的token
+    6、targets是指模型的真实标签或者期望输出，用于指导模型。将测试结果与真实标签(targets)进行比较(loss)，来评估模型的性能
 
+    生成任务的训练和测试是不一样的，没有targets说明要进行测试 生成；若有targets那么要进行训练
+
+    
 
 
 
