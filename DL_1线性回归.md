@@ -139,3 +139,7 @@ plt.plot(X[:, idx].detach().numpy(), X[:, idx].detach().numpy()*w_0[idx].detach(
 plt.scatter(X[:, idx], Y, 1)#画出真实值
 plt.show()#显示图形
 ``` 
+<<<<<<< HEAD
+=======
+![卷积](images/image.png)
+>>>>>>> ba69793ff1f69620c5c16a6eda8a40610a6826d0
