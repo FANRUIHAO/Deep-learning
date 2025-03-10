@@ -4,7 +4,7 @@ self=attention 自注意力机制 （基础架构）
 1、常见输入：(图片、文字、声音)主要探讨文字
     把每个子处理成一个一个的向量，如何做？
         ·采用one-hot encoding来准确表示每个文字 ,为了更好的表示文字的含义加入word embedding让含义更近的向量更加贴近
-        ![alt text](image-14.png)
+![alt text](images/image-14.png)
         模型学习过程:考虑向量为度(也就是长度) 进行全链接 链接到想要的编码的维度
                     通过全连接改变原来向量的维度到768维
     具体是把输入的文字变成编号传给模型（也就是字典的制作）
@@ -17,24 +17,26 @@ self=attention 自注意力机制 （基础架构）
                 ·使用LSTM长短期记忆来判断长序列
             但是RNN和LSTM太慢了只能一个接一个处理文字，不能并行处理
             解决:
-                self-sttention特征转换器（仅仅是为了得到特征向量，向量维度并不改变）
-                将所有文字向量一次性都输入self-sttention
+                self-attention特征转换器（仅仅是为了得到特征向量，向量维度并不改变）
+                将所有文字向量一次性都输入self-attention
                 给每一个输入分配一个注意力。但是分配多少注意力，如何计算注意力呢
-                    用点乘：![alt text](image-15.png)
-                        得到注意力值后通过softmax得到和为1的注意力a，然后再乘以value之后把每个结果相加得到b1![alt text](image-16.png)
+                    用点乘：
+![alt text](images/image-15.png)
+                        得到注意力值后通过softmax得到和为1的注意力a，然后再乘以value之后把每个结果相加得到b1
+[alt text](images/image-16.png)
                         输入输出都是768维
                 实际处理中不会把768维度直接全部输入，而是采用多头自注意力机制分批次输入
 
                 实际中不会仅仅就放一层self-attention，可以多加几层（反正维度不变）
-                    ![alt text](image-17.png)
+![alt text](images/image-17.png)
                 但是向量输入的位置需要考虑，防止位置打乱，所以给每个向量加一个位置向量（维度相同）将两者直接相加输入模型self attention
-                 ![alt text](image-18.png)
+![alt text](images/image-18.png)
                 
-                ![alt text](image-19.png)
+![alt text](images/image-19.png)
 
             每个向量被称作为token
             transformer解析图：（bert）
-                ![alt text](image-20.png)
+![alt text](images/image-20.png)
                 feed forward其实就是全链接
         BERT：特征提取器
             1、首先在大规模文本上进行无监督预训练然后迁移过来做成自己的预训练模型
@@ -43,11 +45,11 @@ self=attention 自注意力机制 （基础架构）
                     将部分内容遮住来训练，使其获得特征提取能力
                 2、next sentence prediction
                     判断前后两个句子是否相邻 
-            3、bert的组成：
-                ![alt text](image-21.png)
+            3、bert的组成：  
+![alt text](images/image-21.png)
                 bert layers其实就是transformer结构，每一层其实就是transformer层
                 1、输入embedding
-                ![alt text](image-22.png)
+![alt text](images/image-22.png)
                 每个向量加一个位置向量还要加一个句子编码（segmentEmbedding）表示词在第几个句子 
 
                 经过计算得到输出结果
