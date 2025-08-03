@@ -5,7 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="90774602-c33e-4bd1-a545-f3e87b631744" name="更改" comment="">
-      <change beforePath="$PROJECT_DIR$/研0CV_0.md" beforeDir="false" afterPath="$PROJECT_DIR$/研0CV_0.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/img_1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/img_3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/研0CV_1.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/研0CV_2.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,21 +49,6 @@
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
-  <component name="RunManager">
-    <configuration default="true" type="JetRunConfigurationType">
-      <module name="Deep-learning" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
-      <module name="Deep-learning" />
-      <option name="filePath" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="应用程序级" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="默认任务">
@@ -73,6 +62,7 @@
       <workItem from="1750947353054" duration="108000" />
       <workItem from="1750947474359" duration="1901000" />
       <workItem from="1753949209567" duration="4798000" />
+      <workItem from="1754199899995" duration="4455000" />
     </task>
     <task id="LOCAL-00001" summary="6.26">
       <option name="closed" value="true" />
