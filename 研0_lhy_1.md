@@ -17,3 +17,20 @@ n折交叉验证：
 ![img_9.png](img_9.png)  
 
 训练集和测试集分布不同的话可能会导致mismatch
+
+海森矩阵判断是local minima还是 saddle point  
+    local minima在别的情况下可能是saddle point
+
+batch：大的batch反而耗时短，但是小的batch却可以达到更好的结果
+
+-----------------------------------
+learning rate scheduling
+
+learning rate：如果在某一方向变化很小的话可以调大尝试
+如果在某一方向变化很陡峭的话可以尝试调小
+
+学习率可以动态调整的：RMSProp方法   
+    Adam：RMSProp + Momentum
+
+warm up（黑科技）：可用于bert训练
+    它会使得训练开始的时候学习率为0，01甚至更小，后期在慢慢调大比如0.1

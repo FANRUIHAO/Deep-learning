@@ -5,10 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="90774602-c33e-4bd1-a545-f3e87b631744" name="更改" comment="8.20">
-      <change afterPath="$PROJECT_DIR$/img_8.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/img_9.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/研0_lhy_1.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/研0_lhy_1.md" beforeDir="false" afterPath="$PROJECT_DIR$/研0_lhy_1.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -61,6 +59,13 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="Deep-learning" />
+      <option name="filePath" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="应用程序级" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -81,6 +86,10 @@
       <workItem from="1754661556220" duration="2684000" />
       <workItem from="1754923323431" duration="1941000" />
       <workItem from="1755650372938" duration="6861000" />
+      <workItem from="1755847166873" duration="647000" />
+      <workItem from="1755848570102" duration="203000" />
+      <workItem from="1755874661096" duration="1055000" />
+      <workItem from="1755960488889" duration="1122000" />
     </task>
     <task id="LOCAL-00001" summary="6.26">
       <option name="closed" value="true" />
