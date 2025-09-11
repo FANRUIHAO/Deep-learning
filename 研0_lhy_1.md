@@ -44,3 +44,49 @@ meta learning（学习如何学习）：？？？？？？？？？？？？？�
 
 generator不仅可以文字生成图片，也可以图片生成图片 pix2pix  
 gan+supervised 效果是最好的  
+
+
+Transformer：
+    Encode：先输入一排向量 通过encoder的许多层Block，最终得到block sequence    
+
+    transformer特有机制：通过self-attention得到新的vector后加上输入得到residual，进而通过Layer norm
+                        对输入的向量肌酸mean和Standard deviation然后输出另外一个向量，并且不需要考虑batch norm 
+                        
+                        进一步的通过全线性层，输出加上输入
+self-attention ----> masked self-attention  加入masked可以增加模型鲁棒性
+    ATdecoder只能一个接一个串联着训练，而NATdecoder可以并行将所有输入一口气处理，提高效率  
+--------------------------------------------------------------  
+Guided Attention 可以用于（语音辨识/合成）中使得模型能够听到之前没听到的语音内容
+    就是因为模型自己识别向量时，因为没有很好的识别顺序，导致有的语音向量没有识别到；而guided attention可以引导模型去有序的辨识语音向量  
+
+
+Beam Search 相当于二叉树，最大生成路径  找出的最大生成路径就叫做greedy decoding
+    用比较有效的方法，找一个不是特别精准的路径 叫做Beam search（有时候有用，有时候废物）
+    在需要创造的情况下，往往答案不是唯一的，那么beam search就有可能没用；在答案确定明了的情况下，beam search比较有用  
+
+语音合成的时候一般可以用到TTS
+
+aattention中可以使用clustering来计算query和key，将一样的cluster进行计算，不一样的直接设为0
+要不要计算attention？那些计算要不要计算attention，使用sinkhorn sorting network在matrix上对cluster进行计算
+
+qkv相乘，三者相乘的顺序不一样，虽然结果是一样的，但是运算量是不一样的
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

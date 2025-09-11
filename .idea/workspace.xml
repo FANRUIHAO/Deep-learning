@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="90774602-c33e-4bd1-a545-f3e87b631744" name="更改" comment="8.23">
+    <list default="true" id="90774602-c33e-4bd1-a545-f3e87b631744" name="更改" comment="9.3">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/研0_lhy_1.md" beforeDir="false" afterPath="$PROJECT_DIR$/研0_lhy_1.md" afterDir="false" />
     </list>
@@ -53,8 +53,9 @@
     </key>
   </component>
   <component name="RunManager">
-    <configuration default="true" type="JetRunConfigurationType">
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
       <module name="Deep-learning" />
+      <option name="filePath" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -85,7 +86,13 @@
       <workItem from="1755960488889" duration="1525000" />
       <workItem from="1756044845382" duration="614000" />
       <workItem from="1756828695073" duration="126000" />
-      <workItem from="1756901110799" duration="1311000" />
+      <workItem from="1756901110799" duration="1347000" />
+      <workItem from="1756954599116" duration="203000" />
+      <workItem from="1757231193294" duration="1623000" />
+      <workItem from="1757323196197" duration="789000" />
+      <workItem from="1757432529340" duration="1435000" />
+      <workItem from="1757472213640" duration="2465000" />
+      <workItem from="1757565686404" duration="2014000" />
     </task>
     <task id="LOCAL-00001" summary="6.26">
       <option name="closed" value="true" />
@@ -135,7 +142,15 @@
       <option name="project" value="LOCAL" />
       <updated>1755962017384</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="9.3">
+      <option name="closed" value="true" />
+      <created>1756906700748</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1756906700748</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -159,6 +174,7 @@
     <MESSAGE value="8.11" />
     <MESSAGE value="8.20" />
     <MESSAGE value="8.23" />
-    <option name="LAST_COMMIT_MESSAGE" value="8.23" />
+    <MESSAGE value="9.3" />
+    <option name="LAST_COMMIT_MESSAGE" value="9.3" />
   </component>
 </project>
