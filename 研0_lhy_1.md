@@ -72,6 +72,12 @@ aattention中可以使用clustering来计算query和key，将一样的cluster进
 qkv相乘，三者相乘的顺序不一样，虽然结果是一样的，但是运算量是不一样的
 
 
+seq2seq：其实就是输入一串句子生成另一串句子  
+    encoder和decoder都是rnn  
+    将编码器最后时间隐状态来出初始decoder隐状态来完成信息传递  
+    经常用BLEU衡量生成序列的好坏  
+
+
 
 
 
