@@ -60,6 +60,18 @@
     最后通过权重λ将全局损失Lg和局部损失Ll结合，得到最终损失：L = Lg + λLl
 
 
+3、论文：PRGS Patch-to-Region Graph Search for Visual Place Recognition
+从片级到区域级图的搜索
+·主要方法：
+  1)提出Patch-to-Region Graph Search以提高重新排序使用相邻对应的候选图像
+
+  2)设计Patch to region模型，将片级特征聚合到区域级特征来突出重点特征，进而满足搜索相邻对应关系依赖于重要特征这一需求
+
+  3)设计graph search模型来实现利用邻域对应关系来估计候选图像的重排序得分，这样可以在图空间中建立所有候选图像和查询图像之间的邻居对应关系
+
+  4)PRGS完美结合了CNN和transformer的骨干网络
+·全局性检索通过比较输入嵌入层的全局性特征之间的距离来检索候选图像；重排列则是通过匹配查询图像和候选图像之间的局部特征
+
 
 
 
